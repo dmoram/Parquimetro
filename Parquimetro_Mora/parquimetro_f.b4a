@@ -1,0 +1,421 @@
+﻿Build1=Default,b4a.example
+File1=1.bal
+File10=exit.jpg
+File11=icono_parking.png
+File12=main.bal
+File13=parking.jpg
+File2=2.bal
+File3=2_1.bal
+File4=3.bal
+File5=3_1.bal
+File6=3_2.bal
+File7=3_3.bal
+File8=4.bal
+File9=4_1.bal
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup11=Default Group
+FileGroup12=Default Group
+FileGroup13=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+IconFile=
+Library1=core
+Library2=sql
+Library3=phone
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="26"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~
+Module1=Starter
+NumberOfFiles=13
+NumberOfLibraries=3
+NumberOfModules=1
+Version=8
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: Parquimetro22
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: True
+	#IncludeTitle: False
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+	Dim Clientes As SQL
+
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+
+	Private user As EditText
+	Private password As EditText
+	Private bot_login As Button
+	Private TabHost1 As TabHost
+	Private bot_menu_ingr As Button
+	Private bot_ingresar As Button
+	Private input_patente As EditText
+	Dim fecha As String
+	Dim hin As String
+	Dim hout As String
+	Dim monto As Int
+	Private listar As Button
+	Dim Mi_Cursor As Cursor
+	Private panel_ingreso As Panel
+	Private bot_confirm As Button
+	Private conf_patente As Label
+	Private conf_fecha As Label
+	Private conf_hora As Label
+	Private bot_retirar As Button
+	Private bot_buscar As Button
+	Private msg_retiro As Label
+	Private panel_retiro As Panel
+	Dim found As Boolean
+	Dim i As Int
+	Private bot_conf_retiro As Button
+	Private input_patente2 As EditText
+	Dim patente As String
+	Private tick_patente As Label
+	Private tick_fecha As Label
+	Private tick_hin As Label
+	Private tick_hout As Label
+	Private tick_monto As Label
+	Private tick_tiempo As Label
+	Dim patente As String
+	Dim phone1 As Phone
+	Private tab_vistas As TabHost
+	Private lista_todos As ListView
+	Private lista_retirados As ListView
+	Private lista_ins As ListView
+	Dim tot_estacionados As Int
+	Dim tot_retirados As Int
+	Private txt_todos As Label
+	Private txt_tot_estacionados As Label
+	Private txt_tot_retirados As Label
+	Private bot_atras As Button
+	Private bot_error_ing As Button
+	Private msg_error As Label
+	Private panel_error_ingreso As Panel
+	Private bot_invitado As Button
+
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'Do not forget to load the layout file created with the visual designer. For example:
+	Activity.LoadLayout("main")
+	If FirstTime Then
+		'Inicialización de la base de datos
+		Clientes.Initialize(File.DirInternal,"Cliente3.db",True)
+		
+		'Creación de una tabla
+		Clientes.BeginTransaction
+		Try
+			Clientes.ExecNonQuery("CREATE TABLE IF NOT EXISTS autos1 (id_dato INTEGER PRIMARY KEY AUTOINCREMENT,patente TEXT, fecha Date, hin TEXT, monto INTEGER, hout TEXT)")
+			Clientes.TransactionSuccessful
+			ToastMessageShow("Crea la base",True)
+		Catch
+			Log("ERROR de Creacion base de datos: "&LastException.Message)
+		End Try
+		Clientes.EndTransaction
+	End If
+	TabHost1.AddTab("0","1.bal")
+	TabHost1.AddTab("1","2.bal")
+	TabHost1.AddTab("2","2_1.bal")
+	TabHost1.AddTab("3","3.bal")
+	TabHost1.AddTab("4","4.bal")
+	TabHost1.AddTab("5","4_1.bal")
+	tab_vistas.AddTab("Estacionados","3_1.bal")
+	tab_vistas.AddTab("Retirados","3_2.bal")
+	tab_vistas.AddTab("Todos","3_3.bal")
+	panel_ingreso.Visible = False
+	panel_retiro.Visible = False
+	input_patente.Color = Colors.RGB(242, 247, 248)
+	input_patente2.Color = Colors.RGB(242, 247, 248)
+	user.Color = Colors.RGB(242, 247, 248)
+	password.Color = Colors.RGB(242, 247, 248)
+	TabHost1.CurrentTab = 1
+
+End Sub
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+
+End Sub
+
+
+Sub bot_login_Click
+	bot_menu_ingr.Visible = True
+	bot_retirar.Visible = True
+	'listar.Top = 490dip
+	'If (user.Text="admin" And password.Text="1234") Then
+		Log("logged in")
+		TabHost1.CurrentTab = 1
+		phone1.HideKeyboard(Activity)
+	'End If
+End Sub
+
+Sub bot_menu_ingr_Click
+	TabHost1.CurrentTab = 2
+	bot_ingresar.Visible = True
+	panel_error_ingreso.Visible = False
+End Sub
+
+Sub bot_ingresar_Click
+	If input_patente.Text.Length == 6 Then
+		patente = input_patente.Text
+		panel_ingreso.Visible = True
+		bot_ingresar.Visible = False
+		conf_patente.Text = "Patente: " & input_patente.Text.ToUpperCase
+		DateTime.DateFormat = "HH:mm"
+		conf_hora.Text = "Hora ingreso: " & DateTime.Date(DateTime.Now)
+		DateTime.DateFormat = "dd-MM-yyyy"
+		conf_fecha.Text = "Fecha: " & DateTime.Date(DateTime.Now)
+		phone1.HideKeyboard(Activity)
+	Else 
+		panel_error_ingreso.Visible = True
+		msg_error.Text = "Patente no válida, debe tener 6 caracteres"
+		bot_error_ing.Text = "Reintentar"
+		bot_ingresar.Visible = False
+	End If
+	input_patente.Text = ""
+End Sub
+
+Sub listar_Click
+	tot_estacionados = 0
+	tot_retirados = 0
+	Private ingreso As Int = 0
+	lista_ins.SingleLineLayout.Label.TextColor = Colors.Black
+	lista_ins.TwoLinesLayout.Label.TextColor = Colors.Black
+	lista_retirados.SingleLineLayout.Label.TextColor = Colors.Black
+	lista_retirados.TwoLinesLayout.Label.TextColor = Colors.Black
+	lista_todos.SingleLineLayout.Label.TextColor = Colors.Black
+	lista_todos.TwoLinesLayout.Label.TextColor = Colors.Black
+	DateTime.DateFormat = "dd-MM-yyyy"
+	fecha = DateTime.Date(DateTime.Now)
+	Mi_Cursor=Clientes.ExecQuery("SELECT * FROM autos1")
+	If Mi_Cursor.RowCount>0 Then
+	'Se recorre el cursor para imprimir todos los datos de la tabla en el Listview
+		lista_ins.Clear
+		lista_retirados.Clear
+		lista_todos.Clear
+		For i=0 To Mi_Cursor.RowCount-1
+			Mi_Cursor.Position=i
+			If Mi_Cursor.GetString("fecha") = fecha Then
+				If Mi_Cursor.GetString("hout") = "-" Then
+					tot_estacionados = tot_estacionados + 1
+					lista_ins.AddTwoLines("Patente: "&Mi_Cursor.GetString("patente")," Hora ingreso: "& Mi_Cursor.GetString("hin"))
+					lista_todos.AddTwoLines("Patente: "&Mi_Cursor.GetString("patente")," Hora ingreso: "& Mi_Cursor.GetString("hin"))
+				Else
+					tot_retirados = tot_retirados + 1
+					ingreso = ingreso + Mi_Cursor.GetString("monto")
+					lista_retirados.AddTwoLines("Patente: "&Mi_Cursor.GetString("patente")&"          Monto: $"&Mi_Cursor.GetString("monto")," Hora ingreso: "& Mi_Cursor.GetString("hin")&"            Hora salida: "& Mi_Cursor.GetString("hout"))
+					lista_todos.AddTwoLines("Patente: "&Mi_Cursor.GetString("patente")," Hora ingreso: "& Mi_Cursor.GetString("hin")&"            Hora salida: "& Mi_Cursor.GetString("hout"))
+				End If
+				
+			End If
+		Next
+		    
+	End If
+	txt_tot_estacionados.Text = "CANTIDAD: " & tot_estacionados
+	txt_tot_retirados.Text = "CANTIDAD: " & tot_retirados & "               INGRESO TOTAL: $"&ingreso
+	txt_todos.Text = "CANTIDAD: " & (tot_estacionados + tot_retirados)
+	TabHost1.CurrentTab = 3
+	tab_vistas.CurrentTab = 0
+End Sub
+
+Sub bot_confirm_Click
+	DateTime.DateFormat = "HH:mm"
+	hin = DateTime.Date(DateTime.Now)
+	Log(hin)
+	DateTime.DateFormat = "dd-MM-yyyy"
+	fecha = DateTime.Date(DateTime.Now)
+	Clientes.BeginTransaction
+	Try
+		Clientes.ExecNonQuery2("INSERT INTO autos1 (patente, fecha, hin, monto, hout) VALUES (?,?,?,?,?)", Array As String(patente.ToUpperCase, fecha, hin, 0, "-"))
+		Clientes.TransactionSuccessful
+		Log("auto ingresado")
+		ToastMessageShow("Vehiculo ingresado",False)
+	Catch
+		Log("catch: " & LastException.Message)
+	End Try
+	Clientes.EndTransaction
+	input_patente2.Text = ""
+	panel_ingreso.Visible = False
+	bot_ingresar.Visible = True
+	TabHost1.CurrentTab = 1
+	phone1.HideKeyboard(Activity)
+End Sub
+
+Sub bot_retirar_Click
+	found = False
+	bot_buscar.Visible = True
+	TabHost1.CurrentTab = 4
+End Sub
+
+Sub bot_buscar_Click
+	found = False
+	i = 0
+	If input_patente2.Text <> "" And input_patente2.Text.Length == 6 Then
+		Mi_Cursor=Clientes.ExecQuery("SELECT * FROM autos1")
+		If Mi_Cursor.RowCount>0 Then
+			'Se recorre el cursor para imprimir todos los datos de la tabla en el Listview
+	
+			Do While (Not(found) And i<Mi_Cursor.RowCount)
+				Mi_Cursor.Position=i
+				If Mi_Cursor.GetString("patente") == input_patente2.Text.ToUpperCase And Mi_Cursor.GetString("hout") == "-" Then
+					patente = Mi_Cursor.GetString("patente")
+					found = True
+					Log("patente encontrada")
+				End If
+				i = i+1
+			Loop	    
+		End If
+	End If
+	bot_buscar.Visible = False
+	panel_retiro.Visible = True
+	If found Then
+		msg_retiro.Text = "Pantente encontrada"
+		bot_conf_retiro.Text = "Generar Ticket"
+	Else If input_patente2.Text.Length == 6 And Not(found) Then
+		msg_retiro.Text = "Patente no encontrada"
+		bot_conf_retiro.Text = "Reintentar"
+	Else
+		msg_retiro.Text = "Patente no válida, debe tener 6 caracteres"
+		bot_conf_retiro.Text = "Reintentar"
+	End If
+	phone1.HideKeyboard(Activity)
+End Sub
+
+Sub bot_conf_retiro_Click
+	panel_retiro.Visible = False
+	If found Then
+		update_values(i)
+		gen_ticket(i)
+		ToastMessageShow("Vehiculo retirado",False)
+		TabHost1.CurrentTab = 5
+	Else
+		input_patente2.Text = ""
+		bot_buscar.Visible = True
+	End If
+End Sub
+
+Sub calc_monto(tiempo_tot As String) As Int
+	Log(tiempo_tot)
+	Private minutos As Int = tiempo_tot.SubString2(0,2)*60 + tiempo_tot.SubString2(3,5)
+	Private total As Int
+	If minutos < 15 Then
+		total = 500
+	Else
+		minutos = minutos - 15
+		total = 500 + minutos*30
+	End If
+	Return total
+End Sub
+
+Sub gen_ticket(idx As Int)
+	Clientes.BeginTransaction
+	Mi_Cursor=Clientes.ExecQuery("SELECT * FROM autos1")
+	Mi_Cursor.Position = idx - 1
+	tick_patente.Text = "PATENTE: " & Mi_Cursor.GetString("patente")
+	tick_fecha.Text = "FECHA: " & Mi_Cursor.GetString("fecha")
+	tick_hin.Text = "HORA INGRESO: " & Mi_Cursor.GetString("hin")
+	tick_hout.Text = "HORA SALIDA: " & Mi_Cursor.GetString("hout")
+	tick_monto.Text = "MONTO: $" & Mi_Cursor.GetInt("monto")
+	Log("ra "& Mi_Cursor.GetString("monto"))
+	tick_tiempo.Text = "TIEMPO TOTAL: " & calc_tiempo(Mi_Cursor.GetString("hin"), Mi_Cursor.GetString("hout"))
+	
+	Clientes.EndTransaction
+End Sub
+
+Sub update_values(idx As Int)
+	DateTime.DateFormat = "HH:mm"
+	hout = DateTime.Date(DateTime.Now)
+	Mi_Cursor.Position=idx-1
+	hin = Mi_Cursor.GetString("hin")
+	Clientes.BeginTransaction
+	Private monto As Int = calc_monto(calc_tiempo(hin,hout))
+	Try
+		Clientes.ExecNonQuery2("UPDATE autos1 SET monto = ?, hout = ? WHERE patente = '"&patente&"'", Array As String(monto, hout))
+		Clientes.TransactionSuccessful
+		Log("updated")
+	Catch
+		Log("catch: " & LastException.Message)
+	End Try
+	Clientes.EndTransaction
+End Sub
+
+Sub calc_tiempo(hora_in As String, hora_sal As String) As String
+	Private dif_horas As String
+	Private dif_minutes As String
+	Private res As String
+	Private menor As Boolean = False
+	Log("hsal "&hora_sal&"   hin "&hora_in)
+	If hora_sal.SubString2(3,4) >= hora_in.SubString2(3,4) Then
+		dif_minutes = hora_sal.SubString2(3,5) - hora_in.SubString2(3,5)
+	Else
+		dif_minutes = hora_sal.SubString2(3,5) - hora_in.SubString2(3,5) + 60
+		menor = True
+	End If
+	If hora_sal.SubString2(0,2) < hora_in.SubString2(0,2) Then
+		dif_horas = hora_sal.SubString2(0,2) - hora_in.SubString2(0,2) + 24
+	Else If menor Then
+		dif_horas = hora_sal.SubString2(0,2) - hora_in.SubString2(0,2) - 1
+	Else
+		dif_horas = hora_sal.SubString2(0,2) - hora_in.SubString2(0,2)
+	End If
+	
+	If dif_horas < 10 Then
+		dif_horas = "0" & dif_horas
+	End If
+	If dif_minutes < 10 Then
+		dif_minutes = "0" & dif_minutes
+	End If
+	res = dif_horas&":"&dif_minutes
+	Return  res
+End Sub
+
+
+Sub bot_atras_Click
+	TabHost1.CurrentTab = 1
+	panel_retiro.Visible = False
+	panel_ingreso.Visible = False
+	input_patente2.Text = ""
+	input_patente.Text = ""
+End Sub
+
+Sub bot_error_ing_Click
+	phone1.HideKeyboard(Activity)
+	panel_error_ingreso.Visible = False
+	input_patente.Text = ""
+	bot_ingresar.Visible = True
+End Sub
+
+Sub bot_invitado_Click
+	TabHost1.CurrentTab = 1
+	bot_menu_ingr.Visible = False
+	bot_retirar.Visible = False
+	listar.Top = 340dip
+End Sub
+
+Sub bot_exit_Click
+	TabHost1.CurrentTab = 0
+	user.Text = ""
+	password.Text = ""
+End Sub
